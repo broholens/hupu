@@ -3,7 +3,6 @@ import re
 import web
 
 from hupu import HuPu
-from settings import DB
 
 urls = (
     '/login', 'login',
@@ -19,8 +18,7 @@ hupu = HuPu()
 class login:
 
     def GET(self):
-        # qrcode_link = hupu.wx_login()
-        qrcode_link = 'https://www.baidu.com'
+        qrcode_link = hupu.wx_login()
         if not qrcode_link:
             return 'qrcode link unreachable'
         raise web.seeother(qrcode_link)
@@ -28,16 +26,22 @@ class login:
 
 class insert:
     def GET(self, posts):
-        hupu.post_ids.extend(re.findall('\d+', posts))
+        for post_id in re.findall('\d+', posts):
+            hupu.post_ids.add(post_id)
         return {
-            number: post_link
-            for number, post_link in enumerate(hupu.post_ids)
+            number: post_id
+            for number, post_id in enumerate(hupu.post_ids)
         }
 
 
 class delete:
     def GET(self, posts):
-        pass
+        for post_id in re.findall('\d+', posts):
+            hupu.post_ids.remove(post_id)
+        return {
+            number: post_id
+            for number, post_id in enumerate(hupu.post_ids)
+        }
 
 
 if __name__ == '__main__':
