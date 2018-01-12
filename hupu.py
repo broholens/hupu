@@ -17,12 +17,13 @@ logging.basicConfig(
 options = webdriver.ChromeOptions()
 # options.add_argument('--headless')
 # options.add_argument('--disable-gpu')
-# options.add_argument("--start-maximized")
+# # options.add_argument("--start-maximized")
 # options.add_argument('--no-sandbox')
 driver = webdriver.Chrome(chrome_options=options)
 
-driver.set_page_load_timeout(10)
-driver.set_script_timeout(10)
+driver.set_page_load_timeout(120)
+# driver.set_script_timeout(10)
+
 
 class HuPu:
     """
@@ -75,7 +76,7 @@ class HuPu:
         # if self.comment_count >= self.max_comment_count:
         #     return
 
-        if self.request(url) == 110:
+        if self.request(url) is False:
             return
         try:
             driver.find_element_by_id('atc_content').send_keys(commentary)
@@ -87,18 +88,16 @@ class HuPu:
         self.comment_count += 1
         self.logger.info('comment count: %s', self.comment_count)
 
-        return 'ok'
-
     def request(self, url):
         """
         对driver.get()的封装
-        １１０仅用做判断是否成功访问，本身并无意义
         """
         try:
             driver.get(url)
-            time.sleep(1)
+            return True
         except:
-            return 110
+            self.logger.error('request %s error!', url)
+            return False
             # try:
             #     driver.execute_script('window.stop()')
             # except:
@@ -110,8 +109,8 @@ class HuPu:
         计算休眠到第二天所需时间
         """
         start = arrow.now().timestamp
-        # 第二天８点开始评论
-        end = arrow.now().replace(hour=8).shift(days=+1).timestamp
+        # 第二天6点开始评论
+        end = arrow.now().replace(hour=6).shift(days=+1).timestamp
         # 评论数置０
         self.comment_count = 0
         return end - start
@@ -143,10 +142,11 @@ class HuPu:
                 time.sleep(10)
                 continue
 
-            if not self.comment(post, commentary):
+            self.comment(post, commentary)
+            time.sleep(2)
+            if driver.current_url in \
+                    'https://bbs.hupu.com/post.php?action=reply':
                 self.logger.error('error occurs when comment %s!', post)
             else:
                 self.logger.info('comment %s successfully!', post)
-
-            time.sleep(120)
-# 21165714_21165701_21165684_21165548
+            time.sleep(180)
