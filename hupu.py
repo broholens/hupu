@@ -14,14 +14,17 @@ logging.basicConfig(
 )
 
 # headless chrome
-options = webdriver.ChromeOptions()
-# options.add_argument('--headless')
-# options.add_argument('--disable-gpu')
-# # options.add_argument("--start-maximized")
-# options.add_argument('--no-sandbox')
-driver = webdriver.Chrome(chrome_options=options)
+# options = webdriver.ChromeOptions()
+# # options.add_argument('--headless')
+# # options.add_argument('--disable-gpu')
+# # # options.add_argument("--start-maximized")
+# # options.add_argument('--no-sandbox')
+# driver = webdriver.Chrome(chrome_options=options)
+options = webdriver.FirefoxOptions()
+options.add_argument('--headless')
+driver = webdriver.Firefox(options=options)
 
-driver.set_page_load_timeout(120)
+driver.set_page_load_timeout(30)
 # driver.set_script_timeout(10)
 
 
@@ -53,14 +56,14 @@ class HuPu:
         """
         微信登录
         """
-        if self.request('https://passport.hupu.com/pc/login') == 110:
+        if self.request('https://passport.hupu.com/pc/login') is False:
             return
         try:
             # wx = driver.find_element_by_link_text('微信登录')
             # wx.click()
             # return wx.get_attribute('data-href')
             driver.find_element_by_link_text('微信登录').click()
-            time.sleep(3)
+            time.sleep(5)
             return driver.get_screenshot_as_base64()
             # driver.get_screenshot_as_file('qrcode.png')
             # time.sleep(2)
@@ -94,15 +97,12 @@ class HuPu:
         """
         try:
             driver.get(url)
-            return True
         except:
-            self.logger.error('request %s error!', url)
-            return False
-            # try:
-            #     driver.execute_script('window.stop()')
-            # except:
-            #     self.logger.error('request %s error!', url)
-            #     return 110
+            try:
+                driver.execute_script('window.stop()')
+            except:
+                self.logger.error('request %s error!', url)
+                return False
 
     def sleep_time(self):
         """
@@ -143,10 +143,10 @@ class HuPu:
                 continue
 
             self.comment(post, commentary)
-            time.sleep(2)
+            time.sleep(30)
             if driver.current_url in \
                     'https://bbs.hupu.com/post.php?action=reply':
                 self.logger.error('error occurs when comment %s!', post)
             else:
                 self.logger.info('comment %s successfully!', post)
-            time.sleep(180)
+            time.sleep(150)
