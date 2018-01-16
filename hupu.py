@@ -3,6 +3,7 @@ import logging
 from multiprocessing import Queue
 import arrow
 from selenium import webdriver
+from settings import TABLE
 
 logging.basicConfig(
     level=logging.INFO,
@@ -53,7 +54,7 @@ class HuPu:
             logging.error('qrcode unreachable!')
             self.driver.close()
 
-    def get_posts(self):
+    def store_posts(self):
         if self.request('https://my.hupu.com/12173289170641/topic') is False:
             return
         try:
@@ -63,7 +64,17 @@ class HuPu:
                 for post in self.driver.find_elements_by_xpath(xp)[:30]
             ]
             for post in posts:
-                self.posts.put(post)
+                TABLE.update_one(
+                    {'is_deleted': False},
+                    {
+                        '$set': {
+                            'post_url': post,
+                            'is_deleted': False,
+                            'timestamp': time.time()
+                        }
+                    },
+                    upsert=True
+                )
         except:
             logging.error('latest 30 posts not found!')
 
@@ -111,11 +122,14 @@ class HuPu:
         self.comment_count = 0
         return end - start
 
-    # def chose_one_post(self):
-    #     post_ids = [post.get('post_id') for post in TABLE.find()]
-    #     if not post_ids:
-    #         return
-    #     return 'https://bbs.hupu.com/{}.html'.format(choice(post_ids))
+    def get_posts(self):
+        """
+        从数据库中选择最近30条, 评论完需要时间 30*3=90min
+        """
+        for post in TABLE.find(
+                {'is_deleted': False}
+        ).sort([('timestamp', -1)]).limit(30):
+            self.posts.put(post.get('post_url'))
 
     def run(self):
         # is logged
@@ -131,15 +145,10 @@ class HuPu:
                 # 程序挂起
                 time.sleep(self.sleep_time())
 
-            if self.comment_count % 30 == 0:
+            if self.posts.empty():
                 self.get_posts()
-
-            # # 数据库中随机选一条数据
-            # post = self.chose_one_post()
-            # if not post:
-            #     time.sleep(10)
-            #     continue
             post = self.posts.get()
+
             self.comment(post, self.commentary)
             time.sleep(30)
             if self.driver.current_url in \
