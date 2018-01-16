@@ -1,12 +1,16 @@
-import re
+"""
+目前只有登录功能有用　　2018.1.16
+"""
+
+# import re
 import web
 from hupu import HuPu
-from settings import TABLE
+# from settings import TABLE
 
 urls = (
-    '/login', 'login',
-    '/insert/(.*?)', 'insert',
-    '/delete/(.*?)', 'delete'
+    'hupu/login', 'login',
+    # 'hupu/insert/(.*?)', 'insert',
+    # 'hupu/delete/(.*?)', 'delete'
 )
 
 app = web.application(urls, globals())
@@ -36,25 +40,25 @@ class login:
         # raise web.seeother(qrcode_link)
 
 
-class insert:
-    def GET(self, posts):
-        for post_id in re.findall('\d+', posts):
-            TABLE.update_one(
-                {'post_id': post_id},
-                {'$set': {'post_id': post_id}},
-                upsert=True
-            )
-        return {
-            number: post_id.get('post_id')
-            for number, post_id in enumerate(TABLE.find())
-        }
-
-
-class delete:
-    def GET(self, posts):
-        for post_id in re.findall('\d+', posts):
-            TABLE.delete_one({'post_id': post_id})
-        return {
-            number: post_id.get('post_id')
-            for number, post_id in enumerate(TABLE.find())
-        }
+# class insert:
+#     def GET(self, posts):
+#         for post_id in re.findall('\d+', posts):
+#             TABLE.update_one(
+#                 {'post_id': post_id},
+#                 {'$set': {'post_id': post_id}},
+#                 upsert=True
+#             )
+#         return {
+#             number: post_id.get('post_id')
+#             for number, post_id in enumerate(TABLE.find())
+#         }
+#
+#
+# class delete:
+#     def GET(self, posts):
+#         for post_id in re.findall('\d+', posts):
+#             TABLE.delete_one({'post_id': post_id})
+#         return {
+#             number: post_id.get('post_id')
+#             for number, post_id in enumerate(TABLE.find())
+#         }
