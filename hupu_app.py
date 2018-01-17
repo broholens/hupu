@@ -8,9 +8,9 @@ from hupu import HuPu
 from settings import TABLE
 
 urls = (
-    'hupu/login', 'login',
+    '/hupu/login', 'login',
     # 'hupu/insert/(.*?)', 'insert',
-    'hupu/delete/(.*?)', 'delete'
+    '/hupu/delete/(.*?)', 'delete'
 )
 
 app = web.application(urls, globals())

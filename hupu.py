@@ -17,7 +17,7 @@ console = logging.StreamHandler()
 console.setLevel(logging.INFO)
 formatter = logging.Formatter('%(levelname)-8s %(message)s')
 console.setFormatter(formatter)
-logging.getLogger(__name__).addHandler(console)
+logging.getLogger('').addHandler(console)
 
 
 class HuPu:
@@ -65,16 +65,14 @@ class HuPu:
             ]
             for post in posts:
                 TABLE.update_one(
-                    {'is_deleted': False},
+                    {'post_url': post},
                     {
-                        '$set': {
-                            'post_url': post,
-                            'is_deleted': False,
-                            'timestamp': time.time()
-                        }
+                        '$set': {'post_url': post},
+                        '$currentDate': {'update': True}
                     },
                     upsert=True
                 )
+            logging.info('got latest 30!')
         except:
             logging.error('latest 30 posts not found!')
 
@@ -102,6 +100,7 @@ class HuPu:
         """
         对driver.get()的封装
         """
+        logging.info('requesting %s ...', url)
         try:
             self.driver.get(url)
         except:
@@ -126,9 +125,8 @@ class HuPu:
         """
         从数据库中选择最近30条, 评论完需要时间 30*3=90min
         """
-        for post in TABLE.find(
-                {'is_deleted': False}
-        ).sort([('timestamp', -1)]).limit(30):
+        self.store_posts()
+        for post in TABLE.find().sort([('update', -1)]).limit(30):
             self.posts.put(post.get('post_url'))
 
     def run(self):
