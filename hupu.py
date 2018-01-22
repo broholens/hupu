@@ -114,9 +114,9 @@ class HuPu:
         """
         计算休眠到第二天所需时间
         """
-        start = arrow.now().timestamp
+        start = self.now.timestamp
         # 第二天6点开始评论
-        end = arrow.now().replace(hour=6).shift(days=+1).timestamp
+        end = self.now.replace(hour=6).shift(days=+1).timestamp
         # 评论数置０
         self.comment_count = 0
         return end - start
@@ -138,7 +138,8 @@ class HuPu:
             time.sleep(10)
 
         while True:
-            if arrow.now() > arrow.now().replace(hour=23, minute=58) or \
+            self.now = arrow.now()
+            if self.now > self.now.replace(hour=23, minute=58) or \
                     self.comment_count >= self.max_comment_count:
                 # 程序挂起
                 time.sleep(self.sleep_time())
@@ -149,8 +150,13 @@ class HuPu:
 
             self.comment(post, self.commentary)
             time.sleep(30)
-            if self.driver.current_url in \
-                    'https://bbs.hupu.com/post.php?action=reply':
+
+            current_url = 'post.php?action=reply'
+            try:
+                current_url = self.driver.current_url
+            except:
+                self.driver.execute_script('window.stop()')
+            if current_url in 'https://bbs.hupu.com/post.php?action=reply':
                 logging.error('error occurs when comment %s!', post)
             else:
                 logging.info('comment %s successfully!', post)
