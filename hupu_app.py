@@ -5,7 +5,7 @@
 import re
 import web
 from hupu import HuPu
-from settings import TABLE
+from settings import DB
 
 urls = (
     '/hupu/login', 'login',
@@ -57,8 +57,18 @@ class login:
 class delete:
     def GET(self, posts):
         for post_id in re.findall('\d+', posts):
-            TABLE.delete_one({'post_url': {'$regex': post_id}})
+            DB.hupu.delete_one({'post_url': {'$regex': post_id}})
+            DB.deleted.update_one(
+                {'post_url': post_id},
+                {
+                    '$set': {'post_url': post_id},
+                    '$currentDate': {'update': True}
+                },
+                upsert=True
+            )
+
         return {
             number: post_id.get('post_url')
-            for number, post_id in enumerate(TABLE.find())
+            for number, post_id in
+            enumerate(DB.find().sort([('update', -1)]).limit(30))
         }

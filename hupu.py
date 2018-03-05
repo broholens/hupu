@@ -3,7 +3,7 @@ import logging
 from multiprocessing import Queue
 import arrow
 from selenium import webdriver
-from settings import TABLE
+from settings import DB
 
 logging.basicConfig(
     level=logging.INFO,
@@ -63,8 +63,9 @@ class HuPu:
                 post.get_attribute('href')
                 for post in self.driver.find_elements_by_xpath(xp)[:30]
             ]
-            for post in posts:
-                TABLE.update_one(
+            deleted = [i.get('post_url') for i in DB.deleted.find()]
+            for post in set(posts).difference(set(deleted)):
+                DB.hupu.update_one(
                     {'post_url': post},
                     {
                         '$set': {'post_url': post},
@@ -126,7 +127,7 @@ class HuPu:
         从数据库中选择最近30条, 评论完需要时间 30*3=90min
         """
         self.store_posts()
-        for post in TABLE.find().sort([('update', -1)]).limit(30):
+        for post in DB.hupu.find().sort([('update', -1)]).limit(30):
             self.posts.put(post.get('post_url'))
 
     def run(self):

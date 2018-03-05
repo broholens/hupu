@@ -1,3 +1,5 @@
 from pymongo import MongoClient
 
-TABLE = MongoClient().hupu.hupu
+client = MongoClient()
+DB = client.hupu
+
