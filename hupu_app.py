@@ -70,5 +70,5 @@ class delete:
         return {
             number: post_id.get('post_url')
             for number, post_id in
-            enumerate(DB.find().sort([('update', -1)]).limit(30))
+            enumerate(DB.hupu.find().sort([('update', -1)]).limit(30))
         }
