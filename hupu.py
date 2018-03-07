@@ -140,7 +140,7 @@ class HuPu:
 
         while True:
             self.now = arrow.now()
-            if self.now > self.now.replace(hour=23, minute=58) or \
+            if self.now > self.now.replace(hour=23, minute=55) or \
                     self.comment_count >= self.max_comment_count:
                 # 程序挂起
                 time.sleep(self.sleep_time())
