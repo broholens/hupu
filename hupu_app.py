@@ -32,7 +32,6 @@ def login(third_party):
 def delete(posts_id):
     for post_id in re.findall('\d+', posts_id):
         post_id = 'https://bbs.hupu.com/{}.html'.format(post_id)
-        DB.hupu.delete_one({'post_url': {'$regex': post_id}})
         DB.deleted.update_one(
             {'post_url': post_id},
             {
