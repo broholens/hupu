@@ -31,7 +31,8 @@ class HuPu:
 
     def __init__(self):
         self.s = Session(
-            webdriver_path='/usr/local/share/chromedriver',
+            # webdriver_path='/usr/local/share/chromedriver',
+            webdriver_path='../chromedriver',
             browser='chrome',
             default_timeout=30,
             webdriver_options={'arguments': ['headless']}
