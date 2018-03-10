@@ -14,7 +14,15 @@ class HuPu:
     # 本日回帖数量
     comment_count = 0
 
-    commentary = '无限回收各种球鞋 aj 喷泡 椰子 实战  急用鞋换钱 闲置清理空间 全新二手皆可 寻求多方合作 更多精彩尽在: clpro7'
+    commentary = '无限回收各种球鞋 aj 喷泡 椰子 实战 急用鞋换钱 闲置清理空间 全新二手皆可 打包优先 寻求多方合作 更多精彩尽在: clpro7'
+
+    posts_address = 'https://my.hupu.com/106159971642274/topic'
+
+    start_at = 8
+
+    end_with = 22
+
+    post_count = 30
 
     def __init__(self):
         options = webdriver.FirefoxOptions()
@@ -24,10 +32,10 @@ class HuPu:
         self.posts = Queue()
 
     def store_posts(self):
-        self.request('https://my.hupu.com/106159971642274/topic')
+        self.request(self.posts_address)
         try:
             xp = '//table[@class="mytopic topiclisttr"]//a'
-            links = self.driver.find_elements_by_xpath(xp)[:60]
+            links = self.driver.find_elements_by_xpath(xp)[:self.post_count*2]
             posts, plates = links[::2], links[1::2]
             posts = [
                 post.get_attribute('href')
@@ -67,8 +75,6 @@ class HuPu:
             self.driver.close()
 
     def is_logged(self):
-        # if not os.path.exists(file):
-        #     logging.info('You need to login!')
         while True:
             if self.driver.current_url in 'https://www.hupu.com/':
                 break
@@ -92,11 +98,11 @@ class HuPu:
 
     def is_cross_bounder(self):
         now = arrow.now()
-        if now.time().hour > 22 or \
+        if now.time().hour > self.end_with or \
                 self.comment_count >= self.max_comment_count:
             logging.info('sleeping......%s', now)
-            time.sleep(now.shift(days=1).replace(hour=8, minute=0).timestamp
-                       - now.timestamp)
+            time.sleep((now.shift(days=1).replace(hour=self.start_at, minute=0)
+                        - now).seconds)
 
     def comment_posts(self):
         self.is_logged()
