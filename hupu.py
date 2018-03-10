@@ -24,10 +24,10 @@ class HuPu:
         self.posts = Queue()
 
     def store_posts(self):
-        self.request('https://my.hupu.com/12173289170641/topic')
+        self.request('https://my.hupu.com/106159971642274/topic')
         try:
             xp = '//table[@class="mytopic topiclisttr"]//a'
-            links = self.driver.find_elements_by_xpath(xp)[:30]
+            links = self.driver.find_elements_by_xpath(xp)[:60]
             posts, plates = links[::2], links[1::2]
             posts = [
                 post.get_attribute('href')
@@ -94,6 +94,7 @@ class HuPu:
         now = arrow.now()
         if now.time().hour > 22 or \
                 self.comment_count >= self.max_comment_count:
+            logging.info('sleeping......%s', now)
             time.sleep(now.shift(days=1).replace(hour=8, minute=0).timestamp
                        - now.timestamp)
 
