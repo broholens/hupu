@@ -103,6 +103,7 @@ class HuPu:
             logging.info('sleeping......%s', now)
             time.sleep((now.shift(days=1).replace(hour=self.start_at, minute=0)
                         - now).seconds)
+            self.comment_count = 0
 
     def comment_posts(self):
         self.is_logged()
