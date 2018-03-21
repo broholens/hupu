@@ -2,8 +2,7 @@ import time
 from multiprocessing import Queue
 import arrow
 from selenium import webdriver
-from settings import DB
-from settings import logging
+from settings import DB, logger, send_email
 
 
 class HuPu:
@@ -45,76 +44,67 @@ class HuPu:
             posts = [
                 post.get_attribute('href')
                 for post, plate in zip(posts, plates)
-                if plate.text in '二手交易区'
+                if plate.text in ['二手交易区']
             ]
             deleted = [i.get('post_url') for i in DB.deleted.find()]
+            # set无序 所以无序回帖
             for post in set(posts).difference(set(deleted)):
                 self.posts.put(post)
-            logging.info('posts have been updated!')
+            logger.info('posts have been updated!')
         except:
-            logging.error('update posts failed!')
+            logger.error('update posts failed!')
 
     def request(self, url):
-        """
-        对driver.get()的封装
-        """
-        # logging.info('requesting %s ...', url)
         try:
             self.driver.get(url)
         except:
-            try:
-                self.driver.execute_script('window.stop()')
-            except:
-                logging.error('request %s error!', url)
+            self.driver.execute_script('window.stop()')
 
     def login(self, third_party):
         self.request('https://passport.hupu.com/pc/login')
-        sleep_time = 10 if third_party is 'qq' else 5
+        sleep_time = 10  # if third_party is 'qq' else 5
         text = {'wechat': '微信登录', 'qq': 'QQ登录'}.get(third_party)
         try:
             self.driver.find_element_by_link_text(text).click()
             time.sleep(sleep_time)
             return self.driver.get_screenshot_as_base64()
         except:
-            logging.error('qrcode unreachable!')
+            logger.error('二维码获取失败!')
             self.driver.close()
 
     def is_logged(self):
         while True:
             if self.driver.current_url in 'https://www.hupu.com/':
                 self.get_posts_address()
+                send_email(f'登陆成功!开始回帖{self.posts_address}')
                 break
-            logging.info('current url: %s', self.driver.current_url)
             time.sleep(10)
 
     def comment_post(self, url, commentary):
-        """
-        添加评论
-        """
+        """添加评论"""
         self.request(url)
         try:
             self.driver.find_element_by_id('atc_content').send_keys(commentary)
             self.driver.find_element_by_id('fastbtn').click()
         except:
-            logging.error('find element error!')
-            return
+            logger.error('find element error!')
+            send_email(f'评论{url}时出错')
 
-        self.comment_count += 1
-        logging.info('comment count: %s', self.comment_count)
-
-    def is_cross_bounder(self):
+    def is_boundary(self):
         now = arrow.now()
         if now.time().hour == self.end_with or \
                 self.comment_count >= self.max_comment_count:
-            logging.info('sleeping......%s', now)
-            time.sleep((now.shift(days=1).replace(hour=self.start_at, minute=0)
-                        - now).seconds)
+            logger.info('%s 开始休眠, 明天%s点再回帖', now, self.start_at)
+            time.sleep(
+                (now.shift(days=1).replace(hour=self.start_at,
+                                           minute=0) - now).seconds
+            )
             self.comment_count = 0
 
     def comment_posts(self):
         self.is_logged()
         while True:
-            self.is_cross_bounder()
+            self.is_boundary()
 
             if self.posts.empty():
                 self.store_posts()
@@ -128,7 +118,9 @@ class HuPu:
             except:
                 self.driver.execute_script('window.stop()')
             if current_url in 'https://bbs.hupu.com/post.php?action=reply':
-                logging.error('error occurs when comment %s!', post)
+                logger.error('error occurs when comment %s!', post)
+                send_email(f'提交回帖请求时出错{post}')
             else:
-                logging.info('comment %s successfully!', post)
+                self.comment_count += 1
+                logger.info('评论 %s 成功!　已评论: %s', post, self.comment_count)
             time.sleep(150)
