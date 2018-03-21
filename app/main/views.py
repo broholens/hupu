@@ -1,4 +1,4 @@
-from flask import render_template, url_for, redirect, session, request
+from flask import render_template, url_for, redirect, session
 from werkzeug.security import check_password_hash
 from apscheduler.schedulers.background import BackgroundScheduler
 from .forms import LoginForm, CommentSettingsForm
@@ -35,17 +35,15 @@ def index():
         hupu.max_comment_count = form.max_comment_count.data
         hupu.post_count = form.post_count.data
         hupu.topic_id = form.topic_id.data
-        if form.third_party.data not in ['wechat', 'qq']:
-            return 'must be wechat or qq'
         base64_img = hupu.login(form.third_party.data)
         scheduler = BackgroundScheduler()
-        scheduler.add_job(hupu.comment_posts)
+        scheduler.add_job(hupu.comment_posts, 'date')
         scheduler.start()
         return """
             <!DOCTYPE html>
             <html>
             <head>
-                <title>hupu login</title>
+                <title>hupu 登录</title>
             </head>
             <body>
                 <div style="text-align: center">
@@ -55,3 +53,17 @@ def index():
             </html>
             """.format(base64_img)
     return render_template('index.html', form=form)
+
+
+@main.route('/hupu/delete/<post_id>')
+def delete(post_url):
+    post_url = 'https://bbs.hupu.com/{}.html'.format(post_url)
+    DB.deleted.update_one(
+        {'post_url': post_url},
+        {
+            '$set': {'post_url': post_url},
+            '$currentDate': {'update': True}
+        },
+        upsert=True
+    )
+    return '已删除'
