@@ -9,11 +9,23 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)s %(message)s',
     datefmt='%a, %d %b %Y %H:%M:%S',
     filename='hupu.log',
-    filemode='w'
+    filemode='a'
 )
 
 console = logging.StreamHandler()
 console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(levelname)-8s %(message)s')
+formatter = logging.Formatter('%(asctime)s %(levelname)-6s %(message)s')
 console.setFormatter(formatter)
 logging.getLogger('').addHandler(console)
+
+# pymysql.err.OperationalError: (2003, "Can't connect to MySQL server on 'host'
+# ([Errno -8] Servname not supported for ai_socktype)")
+
+mysql_config = dict(
+    host='localhost',
+    user='root',
+    passwd='      ',
+    db='hupu',
+    charset='utf8',
+    unix_socket='/var/run/mysqld/mysqld.sock'
+)
