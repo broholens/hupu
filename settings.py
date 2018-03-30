@@ -14,8 +14,8 @@ class MongoFormatter(logging.Formatter):
     def format(self, record):
         """Formats LogRecord into python dictionary."""
         return {
-            # 不用　tzinfo='+08:00'
-            'datetime': arrow.get(record.created).to('+08:00').datetime,
+            # 不用　tzinfo='+08:00' record.created
+            'datetime': arrow.now().datetime,
             'level': record.levelname,
             'message': record.getMessage(),
         }
