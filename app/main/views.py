@@ -30,15 +30,8 @@ def index():
         return redirect(url_for('main.login'))
     form = CommentSettingsForm()
     if form.validate_on_submit():
-        hupu = HuPu()
-        hupu.commentary = form.commentary.data
-        hupu.max_comment_count = form.max_comment_count.data
-        hupu.post_count = form.post_count.data
-        hupu.topic_id = form.topic_id.data
-        base64_img = hupu.login(form.third_party.data)
-        scheduler = BackgroundScheduler()
-        scheduler.add_job(hupu.comment_posts, 'date')
-        scheduler.start()
+        base64_img, hupu = init_hupu(form)
+        start_comment(hupu)
         return """
             <!DOCTYPE html>
             <html>
@@ -54,7 +47,21 @@ def index():
             """.format(base64_img)
     return render_template('index.html', form=form)
 
+def init_hupu(form):
+    hupu = HuPu()
+    hupu.commentary = form.commentary.data
+    hupu.max_comment_count = form.max_comment_count.data
+    hupu.post_count = form.post_count.data
+    hupu.topic_id = form.topic_id.data
+    return hupu.login(form.third_party.data), hupu
 
+def start_comment(hupu):
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(hupu.comment_posts)
+    scheduler.start()
+
+
+# TODO: login required
 @main.route('/hupu/delete/<post_id>')
 def delete(post_url):
     post_url = 'https://bbs.hupu.com/{}.html'.format(post_url)
