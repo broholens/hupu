@@ -15,7 +15,7 @@ class MongoFormatter(logging.Formatter):
         """Formats LogRecord into python dictionary."""
         return {
             # 不用　tzinfo='+08:00'
-            'datetime': arrow.get(record.created).datetime,
+            'datetime': arrow.get(record.created).to('+08:00').datetime,
             'level': record.levelname,
             'message': record.getMessage(),
         }
@@ -45,12 +45,12 @@ logging.basicConfig(
 logger = logging.getLogger('')
 logger.setLevel(logging.INFO)
 
-# StreamHandler
-console = logging.StreamHandler()
-console.setLevel(logging.INFO)
-formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
-console.setFormatter(formatter)
-logger.addHandler(console)
+# # StreamHandler
+# console = logging.StreamHandler()
+# console.setLevel(logging.INFO)
+# formatter = logging.Formatter('%(asctime)s %(levelname)-8s %(message)s')
+# console.setFormatter(formatter)
+# logger.addHandler(console)
 
 # add mongohandler
 logger.addHandler(MongoHandler())

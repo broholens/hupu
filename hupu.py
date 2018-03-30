@@ -96,10 +96,8 @@ class HuPu:
                 self.comment_count >= self.max_comment_count:
             logger.info('%s 开始休眠, 明天%s点再回帖', now, self.start_at)
             send_email('开始休眠')
-            time.sleep(
-                (now.shift(days=1).replace(hour=self.start_at,
-                                           minute=0) - now).seconds
-            )
+            time.sleep((now.shift(days=1).replace(hour=self.start_at, minute=0) - now).seconds)
+            send_email('开始回帖')
             self.comment_count = 0
 
     def comment_posts(self):
