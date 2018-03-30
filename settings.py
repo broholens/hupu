@@ -1,10 +1,12 @@
 import logging
 import requests
+import arrow
 from pymongo import MongoClient
 
 
 client = MongoClient()
 DB = client.hupu
+DB.logs.drop()
 
 
 class MongoFormatter(logging.Formatter):
@@ -12,7 +14,7 @@ class MongoFormatter(logging.Formatter):
     def format(self, record):
         """Formats LogRecord into python dictionary."""
         return {
-            'timestamp': record.created,
+            'datetime': arrow.get(record.created, tzinfo='+08:00').datetime,
             'level': record.levelname,
             'message': record.getMessage(),
         }
