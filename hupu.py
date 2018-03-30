@@ -95,6 +95,7 @@ class HuPu:
         if now.time().hour == self.end_with or \
                 self.comment_count >= self.max_comment_count:
             logger.info('%s 开始休眠, 明天%s点再回帖', now, self.start_at)
+            send_email('开始休眠')
             time.sleep(
                 (now.shift(days=1).replace(hour=self.start_at,
                                            minute=0) - now).seconds
@@ -118,7 +119,7 @@ class HuPu:
             except:
                 self.driver.execute_script('window.stop()')
             if current_url in 'https://bbs.hupu.com/post.php?action=reply':
-                logger.error('error occurs when comment %s!', post)
+                logger.error('提交回帖请求时出错 %s!', post)
                 send_email(f'提交回帖请求时出错{post}')
             else:
                 self.comment_count += 1
