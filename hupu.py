@@ -62,7 +62,7 @@ class HuPu:
 
     def login(self, third_party):
         self.request('https://passport.hupu.com/pc/login')
-        sleep_time = 10  # if third_party is 'qq' else 5
+        sleep_time = 8  # if third_party is 'qq' else 5
         text = {'wechat': '微信登录', 'qq': 'QQ登录'}.get(third_party)
         try:
             self.driver.find_element_by_link_text(text).click()
